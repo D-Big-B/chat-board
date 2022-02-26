@@ -10,7 +10,7 @@ function formatMessage(username, text) {
 
 function formatRoomInfo(id) {
   return {
-    data: `http://localhost:3000/${id}`,
+    data: `https://bigb-chat-board.herokuapp.com/${id}`,
   };
 }
 
