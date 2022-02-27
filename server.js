@@ -31,96 +31,101 @@ app.get("/:id", (req, res) => {
 const botName = "ChatBoard Bot";
 
 // Run when client connects
-io.on("connection", (socket) => {
-  socket.on("joinRoom", ({ roomId, username }) => {
-    const [{ room }] = getRoomUsers(roomId).filter(
-      (user) => user.id === roomId
-    );
 
-    const user = userJoin(socket.id, username, room, roomId);
-
-    socket.join(user.roomId);
-    // Welcome current user
-    socket.emit("message", formatMessage(botName, "Welcome to ChatBoard!"));
-
-    io.to(user.roomId).emit("roomCreated", formatRoomInfo(user.roomId));
-
-    // Broadcast when a user connects
-    socket.broadcast
-      .to(user.roomId)
-      .emit(
-        "message",
-        formatMessage(botName, `${user.username} has joined the chat`)
+try {
+  io.on("connection", (socket) => {
+    socket.on("joinRoom", ({ roomId, username }) => {
+      const [{ room }] = getRoomUsers(roomId).filter(
+        (user) => user.id === roomId
       );
 
-    // Send users and room info
-    io.to(user.roomId).emit("roomUsers", {
-      room: user.room,
-      users: getRoomUsers(user.roomId),
-    });
-  });
+      const user = userJoin(socket.id, username, room, roomId);
 
-  socket.on("createRoom", ({ username, room }) => {
-    const user = userJoin(socket.id, username, room, socket.id);
-    socket.join(user.roomId);
-    // Welcome current user
-    socket.emit("message", formatMessage(botName, "Welcome to ChatBoard!"));
+      socket.join(user.roomId);
+      // Welcome current user
+      socket.emit("message", formatMessage(botName, "Welcome to ChatBoard!"));
 
-    io.to(user.roomId).emit("roomCreated", formatRoomInfo(user.id));
+      io.to(user.roomId).emit("roomCreated", formatRoomInfo(user.roomId));
 
-    // Broadcast when a user connects
-    socket.broadcast
-      .to(user.roomId)
-      .emit(
-        "message",
-        formatMessage(botName, `${user.username} has joined the chat`)
-      );
-
-    // Send users and room info
-    io.to(user.roomId).emit("roomUsers", {
-      room: user.room,
-      users: getRoomUsers(user.roomId),
-    });
-  });
-
-  // Listen for chat message
-
-  socket.on("chatMessage", (msg) => {
-    const user = getCurrentUser(socket.id);
-    io.to(user.roomId).emit("message", formatMessage(user.username, msg));
-  });
-
-  // Listens for draw methods
-  socket.on("mouse", (data) => {
-    const user = getCurrentUser(socket.id);
-
-    socket.broadcast.to(user.roomId).emit("mouse", data);
-  });
-
-  // Listens for clear Canvas
-  socket.on("clearCanvas", () => {
-    const user = getCurrentUser(socket.id);
-
-    socket.broadcast.to(user.roomId).emit("clearSketch");
-  });
-  // Runs when client disconnects
-
-  socket.on("disconnect", () => {
-    const user = userLeave(socket.id);
-    if (user) {
-      io.to(user.roomId).emit(
-        "message",
-        formatMessage(botName, `${user.username} user has left the chat`)
-      );
+      // Broadcast when a user connects
+      socket.broadcast
+        .to(user.roomId)
+        .emit(
+          "message",
+          formatMessage(botName, `${user.username} has joined the chat`)
+        );
 
       // Send users and room info
       io.to(user.roomId).emit("roomUsers", {
         room: user.room,
         users: getRoomUsers(user.roomId),
       });
-    }
+    });
+
+    socket.on("createRoom", ({ username, room }) => {
+      const user = userJoin(socket.id, username, room, socket.id);
+      socket.join(user.roomId);
+      // Welcome current user
+      socket.emit("message", formatMessage(botName, "Welcome to ChatBoard!"));
+
+      io.to(user.roomId).emit("roomCreated", formatRoomInfo(user.id));
+
+      // Broadcast when a user connects
+      socket.broadcast
+        .to(user.roomId)
+        .emit(
+          "message",
+          formatMessage(botName, `${user.username} has joined the chat`)
+        );
+
+      // Send users and room info
+      io.to(user.roomId).emit("roomUsers", {
+        room: user.room,
+        users: getRoomUsers(user.roomId),
+      });
+    });
+
+    // Listen for chat message
+
+    socket.on("chatMessage", (msg) => {
+      const user = getCurrentUser(socket.id);
+      io.to(user.roomId).emit("message", formatMessage(user.username, msg));
+    });
+
+    // Listens for draw methods
+    socket.on("mouse", (data) => {
+      const user = getCurrentUser(socket.id);
+
+      socket.broadcast.to(user.roomId).emit("mouse", data);
+    });
+
+    // Listens for clear Canvas
+    socket.on("clearCanvas", () => {
+      const user = getCurrentUser(socket.id);
+
+      socket.broadcast.to(user.roomId).emit("clearSketch");
+    });
+    // Runs when client disconnects
+
+    socket.on("disconnect", () => {
+      const user = userLeave(socket.id);
+      if (user) {
+        io.to(user.roomId).emit(
+          "message",
+          formatMessage(botName, `${user.username} user has left the chat`)
+        );
+
+        // Send users and room info
+        io.to(user.roomId).emit("roomUsers", {
+          room: user.room,
+          users: getRoomUsers(user.roomId),
+        });
+      }
+    });
   });
-});
+} catch (err) {
+  console.log(err);
+}
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
