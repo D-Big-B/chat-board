@@ -9,7 +9,6 @@ const socket = io();
 if (query.roomId) {
   username = query.username;
   roomId = query.roomId;
-
   socket.emit("joinRoom", { roomId, username });
 } else {
   // Create chatroom
@@ -17,7 +16,13 @@ if (query.roomId) {
   room = query.room;
   socket.emit("createRoom", { username, room });
 }
-
+// getting error
+socket.on("errorWhileJoining", async () => {
+  await alert(
+    "Problem With Joining Link ! 😔😔\nPlease Join with correct link"
+  );
+  window.location.href = "/";
+});
 // get roomInfo
 socket.on("roomCreated", ({ data }) => {
   outputInfo(data);

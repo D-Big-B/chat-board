@@ -40,9 +40,12 @@ function draw() {
 }
 
 clearButton.addEventListener("click", clearCanvas);
-socket.on("clearSketch", clearCanvas);
+socket.on("clearSketch", clear);
 function clearCanvas() {
+  socket.emit("clearCanvas");
+}
+function clear() {
   lines = [];
   background("#1e1e1e");
-  socket.emit("clearCanvas");
+  console.log("clear");
 }
